@@ -1,0 +1,11 @@
+;$ID;
+name = melted
+description = Allows to configure and connect to the melted server
+package = Playout Server
+core = 7.x
+files[] = melted.module
+files[] = includes/playout.php
+files[] = includes/client.php
+
+;dependencies = autoload
+;php = 5.3
