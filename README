@@ -5,8 +5,8 @@ Melted -> http://www.mltframework.org/
 
 
 Features Currently
-* play/stop/pause control
-* Show the  current playlist in a Table
+* Block with play/stop/pause control
+* Show the  current playlist in a table
 * A Block with the Current Status of Melted
 
 Features planned
