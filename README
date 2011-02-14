@@ -1,0 +1,16 @@
+Drupal 7 Module to Integrate with the Open Source Video Playout Server Melted
+
+Drupal -> http://drupal.org
+Melted -> http://www.mltframework.org/
+
+
+Features Currently
+* play/stop/pause control
+* Show the  current playlist in a Table
+* A Block with the Current Status of Melted
+
+Features planned
+* XML generator for graphic (logo) Overlays, 
+* Loading Mechanism for loading Clips/XML to a Unit. Integration with Views, nodequeue
+
+Currently only 1 of Melted's 4 Units are supported.
