@@ -1,0 +1,182 @@
+<?php
+// ;$Id$
+
+/** 
+ * @file
+ * Provides a Block for Controlling the Melted Playout Server
+ *
+ * You can find more Information about melted on their sourceforge page
+ * http://mltframework.org
+ */
+
+function melted_controller_block_info() {
+
+  $blocks['melted_controller'] = array(
+    'info' => t('Melted Controller'),
+    'status' => TRUE,
+    'region' => 'header',
+    'weight' => 0,
+    'visibility' => 1,
+
+    'access arguments' => array('access melted'),
+  );
+
+  return $blocks;
+}
+
+
+/**
+  * Implements hook_block_configure.
+  * NEEDS SOME WORK or gets removed
+ */
+
+function melted_controller_block_configure($delta) {
+
+  $form = array();
+  switch ($delta) {
+    case 'melted_controller':
+      $form['melted_controller_icon'] = array(
+        '#title' => t('Icon Size'),
+        '#type' => 'fieldset',
+        '#description' => t('Size of the Icons used for the Melted Controller'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+      );
+      $form['melted_controller_iconsize_options'] = array(
+        '#type' => 'value',
+        '#value' => array('16x16','22x22','32x32','48x48','64x64','128x128'),
+//        '#default_value' = variable_get('melted_controller_iconsize','32x32'),
+      );
+      $form['melted_controller_icon']['melted_controller_iconsize'] = array(
+        '#title' => t('Icon Size'),
+        '#description' => t('Choose the right icon size for your theme'),
+        '#type' => 'select',
+        '#options' => $form['melted_controller_iconsize_options']['#value'],
+      );
+    break;
+  }
+  return $form;
+}
+
+/**
+  * Implements hook_block_save().
+  * NEEDS SOME WOERK or gets removed
+ */
+function melted_controller_block_save($delta = '', $edit = array()) {
+  switch($delta) {
+     case 'melted_controller':
+       variable_set('melted_controller_iconsize',$edit['melted_controller_iconsize']);
+       break;
+  }
+  return;
+}
+
+
+
+/**
+  * Implements hook_block_configure
+ */
+function melted_controller_block_view($delta) {
+  switch($delta) {
+    case 'melted_controller':
+      $block['subject'] = t('Melted Controller');
+      $block['content'] = drupal_get_form('melted_controller_form');
+      return $block;
+      break;
+  }
+}
+     
+function melted_controller_form() {
+  $iconsize = "16x16";
+
+   $form['prev'] = array(
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module','melted')."/gfx/".$iconsize."/player_prev.png",
+    '#return_value' => t('Previous'),
+    '#name' => 'prev',
+    '#description' => t('To beginning of Clip'),
+    '#ajax' => array(
+      'callback' => 'melted_controller_form_submit',
+      'wrapper' => 'box',
+      '#return_value' => t('prev'),
+      'name' => 'prev',
+    ),
+  ); 
+  $form['play'] = array(
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module','melted')."/gfx/".$iconsize."/player_play.png",
+    '#return_value' => t('Play'),
+    '#name' => 'play',
+    '#ajax' => array(
+      'callback' => 'melted_controller_form_submit',
+      'wrapper' => 'box',
+      '#return_value' => t('Play'),
+      'name' => 'play',
+    ),
+  );
+  $form['stop'] = array(
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module','melted')."/gfx/".$iconsize."/player_stop.png",
+    '#return_value' => t('Stop'),
+    '#name' => 'stop',
+    '#ajax' => array(
+      'callback' => 'melted_controller_form_submit',
+      'wrapper' => 'box',
+      '#return_value' => t('Stop'),
+      'name' => 'stop',
+    ),
+  );
+
+  $form['pause'] = array(
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module','melted')."/gfx/".$iconsize."/player_pause.png",
+    '#return_value' => t('Pause'),
+    '#name' => 'pause',
+    '#ajax' => array(
+      'callback' => 'melted_controller_form_submit',
+      'wrapper' => 'box',
+      '#return_value' => t('Pause'),
+      'name' => 'pause',
+    ),
+  ); 
+  $form['next'] = array(
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module','melted')."/gfx/".$iconsize."/player_next.png",
+    '#return_value' => t('Next'),
+    '#name' => 'next',
+    '#ajax' => array(
+      'callback' => 'melted_controller_form_submit',
+      'wrapper' => 'box',
+      '#return_value' => t('Next'),
+      'name' => 'next',
+    ),
+  );
+  return $form;
+}
+
+function melted_controller_form_submit($form, &$form_state)  {
+  $settings = array(
+    'host' => variable_get('melted_server_config_ip'),
+    'port' => variable_get('melted_server_config_port'),
+    'mode' => 1,
+  );
+  $playlist = array();
+  $playout = new Playout($settings,$playlist);
+//drupal_set_message(print dpm($form_state),'status');
+  switch ($form_state['triggering_element']['#name']) {
+    case 'play':
+      $playout->play($unit = 0);
+      break;
+    case 'pause':
+      $playout->pause($unit = 0);
+      break;
+    case 'stop':
+      $playout->stop($unit = 0);
+      break;
+    case 'rew':
+      $playout->goto($unit = 0);
+      break;
+
+  }
+}      
+

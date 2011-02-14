@@ -3,20 +3,22 @@
 
 /**
  * @file
- * A Module to conffigure and connect to a melted playout server
+ * Provides the basic Configuration for our melted Server
  *
- * This Module offers an Admin Interface for configuring the IP, Port and Mode
- * of a melted server instance. 
- * Requires a running melted instance. You can find melted on mltproject.org
-*/
+ * This Module provides a Form for configuring our Melted Playout Server Instance
+ * You can find more Information about melted on their sourceforge page
+ * http://mltframework.org
+ */
 
+include(drupal_get_path('module', 'melted').'/inc/client.php');
+include(drupal_get_path('module', 'melted').'/inc/playout.php');
 
 /**
- * Implementation of hook_help
-*/
+ * Implements hook_help().
+ */
 function melted_help($path, $arg) {
   if ($path == 'admin/help#melted') {
-    return t('Melted Server Configuration');
+    return t('Configuration for the Melted Playout Server');
   }
 }
 
@@ -24,47 +26,57 @@ function melted_help($path, $arg) {
 /**
  * Implements hook_permission().
  *
- * Since the access to our new custom pages will be granted based on
- * special permissions, we need to define what those permissions are here.
- * This ensures that they are available to enable on the user role
- * administration pages.
+ * Since we do not want all Users alter the Playout Settings
  */
 function melted_permission() {
   return array(
-  	'access melted' => array(
-  	  'title' => t('Access melted configuration'),
-  	  'description' => t('Allow users to ,manage the Melted Server Configuration'),
+    'access melted config' => array(
+    'title' => t('Alter melted configuration'),
+    'description' => t('Allow users to manage the Melted Server Configuration'),
     ),
-     );
+    'access melted' => array(
+    'title' => t('View the Data Melted provides'),
+      'description' => t('Allow users to view the Data of Melted like playlists, controlbar etc.'),
+    ),
+
+  );
 }
 
 
-
-
-/**
- * Implementation of hook_menu().
-*/
+/** 
+  * Implements hook_menu().
+ */
 function melted_menu() {
-  $items = array();
-
   $items['admin/config/melted'] = array(
-    'title' => 'Melted Playout Server',
-    'description' => 'Configuration of melted',
-    'page callback' => 'melted_overview',
-    'access arguments' => array('access melted'),
-    'type' => MENU_NORMAL_ITEM,
+    'title' => t('Melted Playout Server'),
+    'description' => t('Configure several options fnd view the Status of the melted Playout Server'),
+    'position' => 'right',
+    'weight' => -9,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access melted config'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
   );
-  $items['admin/config/melted/server'] = array(
-    'title' => 'Melted Server Configuration',
-    'description' => 'Configure the Melted Playout Server',
+  $items['admin/config/melted/settings'] = array(
+    'title' => t('Melted Settings'),
+    'description' => t('Enter the Hostname and Port of the melted Playout Server'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('melted_server_config_form'),
+    'page arguments' => array('melted_admin_settings'),
+    'access arguments' => array('access melted config'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'melted.admin.inc',
+  );
+
+  $items['melted/playlist'] = array(
+    'title' => t('Watch Playlist'),
+    'page callback' => 'melted_playlist',
     'access arguments' => array('access melted'),
     'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'main-menu',
   );
 
   //now define the menu entry for the status block callback. so we can make some nice ajax
- $items['melted/refresh'] = array(
+  $items['melted/refresh'] = array(
     'page callback' => 'melted_refresh',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
@@ -72,88 +84,88 @@ function melted_menu() {
   return $items;
 }
 
-function melted_overview() {
-  return t('Melted Config');
-}
-
-/**
- * Form builder; Create the form for the Melted Server Configuration
-*/
-function melted_server_config_form($form, &$form_state) {
-  //Ip address or hostname of the Melted Server
-  $form['melted_server_config_ip'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Hostname',
-    '#default_value' => variable_get('melted_server_config_ip','localhost'),
-    '#description' => t('Enter the Servername or Ip Address of the Melted Server. Usually this will be set to localhost'),
-    '#required' => TRUE,
-    '#length' => 20,
-    '#maxlength' => 50,
-  );
-
-  $form['melted_server_config_port'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Port',
-    '#description' => t('The Port of the Melted Server. Usually 5250.'),
-    '#default_value' => variable_get('melted_server_config_port','5250'),
-    '#required' => TRUE,
-    '#length' => 5,
-    '#malength' => 5,
-   );
-
-return  system_settings_form($form);
-}
-
 
 /**
  * Implementation of hook_block_info
-*/
+ */
 function melted_block_info() {
   $blocks = array();
-
   $blocks['melted_control'] = array(
     'info' => t('Shows the Status of the Melted Server'),
     'cache' => DRUPAL_NO_CACHE,
   );
-
   return $blocks;
 }
 
 
-/**
- * Implementation of hook_block_view
-*/
+ /**
+  * Implementation of hook_block_view
+  */
 function melted_block_view($block_name = '') {
   if ($block_name = 'melted_control') {
-   
-//include_once('includes/playout.php');
-//include_once('includes/client.php'); 
-  $content = melted_getstatus(); 
+    //include_once('includes/playout.php');
+    //include_once('includes/client.php'); 
+//    $content = melted_getstatus(); 
+
+  $path = drupal_get_path('module', 'melted');
+  drupal_add_js ($path . '/js/melted.js');
+  $content = "<div class='melted_status'></div>"; //melted_ajax();
+//$content = melted_refresh();
     $block = array(
       'subject' => t('Melted Status'),
       'content' => $content,
     );
-
-  return $block;
+//drupal_set_message(print dpm($playout->Mvcp->status()),'status');  
+    return $block;
   }
 }
 
-function melted_getstatus() {
-  $path = drupal_get_path('module', 'melted');
-  drupal_add_js ($path . '/js/melted.js');
-  $output = '<div id="melted_status"></div>';
-  return $output;
-}
+
+
 
 function melted_refresh() {
-  $hostname = variable_get('melted_server_config_ip');
-  $port = variable_get('melted_server_config_port');
-  $myMelted = new MvcpClient($hostname,$port,1);
-  $myMelted->connect();
+  $settings = array(
+    'host' => variable_get('melted_server_config_ip'),
+    'port' => variable_get('melted_server_config_port'),
+    'mode' => 1,
+  );
+  $playlist = array();
+  $playout = new Playout($settings,$playlist);
   $output = '<div id="melted_status">';
-  $output.="Connection to ".$hostname.":".$port."<br/>";
-  if ($myMelted->isConnected()) $output.="Status: Online";
-  else $output.="Status: Offline";
-  $output.='</div>';
-  return $output;
+  if ($playout->connect()) {
+    $status = $playout->Mvcp->status();
+    $output.= "<p>Connected to Melted</p>";
+    $output.= "<p>Status:".$status['mode']."</p>";
+    $output.= "<p>Clip:".$status['currentClip']."</p";
+    $output.= "<p>Frame:".$status['currentFrame']."/".$status['length']."</p>";
+
+  }
+  else {
+    $output.="not connected";
+  }
+  $output.="</div>";
+ //return $output; 
+// drupal_set_message(print dpm($_POST),'status');
+// if (!empty($_POST['js'])) {
+   drupal_json_output(array ('data' => $output));
+/* } else
+ {
+   return $output;
+ }*/
+}
+
+
+
+function melted_playlist() {
+  $settings = array(
+    'host' => variable_get('melted_server_config_ip'),
+    'port' => variable_get('melted_server_config_port'),
+    'mode' => 1,
+  );
+  $playlist = array();
+  $playout = new Playout($settings,$playlist);
+  $rows = $playout->Mvcp->listClips();
+ // drupal_set_message(print dpm($listClips),'status');
+  $header = array('index', 'file', 'in', 'out', 'realLength', 'estimatedLength');
+  return theme('table', array('header' => $header, 'rows' => $rows,)); //listClips[0]['file'];//theme_table($header, $listClips); //dpm($status); 
 }

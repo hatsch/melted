@@ -1,0 +1,10 @@
+;$Id$
+
+name = melted controller
+description = Provides a block for controlling the Open Source Playout Server Melted.
+package = melted
+core = 7.x
+files[] = melted.module
+
+;dependencies[] = melted
+;php = 5.2
