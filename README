@@ -1,7 +1,8 @@
 Drupal 7 Module to Integrate with the Open Source Video Playout Server Melted
 
-Drupal -> http://drupal.org
-Melted -> http://www.mltframework.org/
+Requirements
+* Drupal -> http://drupal.org
+* Melted -> http://www.mltframework.org/
 
 
 Features Currently
@@ -11,7 +12,11 @@ Features Currently
 
 Features planned
 * XML generator for graphic (logo) Overlays, 
-* Loading Mechanism for loading Clips/XML to a Unit. Integration with Views, nodequeue
+* Enhance the Playlist Table to du basic Playlist Operations. (Wipe from, Clear)
+* Loading Mechanism for loading Playlists of Clips/XML to a Unit.
+* Scheduling of blocked Content. 
+    Blocks have a configured length and a playlist of Clips associated.
+    The block internal playlist can be filled with views and/or nodequeue's smartqueues
 
 Currently only 1 of Melted's 4 Units are supported.
 
